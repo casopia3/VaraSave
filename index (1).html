@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VaraSave — On-Chain Savings Protocol</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #00ff87;
+    --dark-green: #00c96b;
+    --bg: #050f0a;
+    --card: #0a1a10;
+    --border: #0d2b18;
+    --text: #e8f5ee;
+    --muted: #4a7a5a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    overflow-x: hidden;
+  }
+
+  /* GRID BG */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,255,135,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,255,135,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* GLOW */
+  .glow-orb {
+    position: fixed;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(0,255,135,0.08) 0%, transparent 70%);
+    border-radius: 50%;
+    top: -100px;
+    right: -100px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 60px;
+    background: rgba(5,15,10,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--green);
+    letter-spacing: -0.5px;
+  }
+
+  .logo span { color: var(--text); }
+
+  .nav-links {
+    display: flex;
+    gap: 40px;
+    list-style: none;
+  }
+
+  .nav-links a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover { color: var(--green); }
+
+  .btn-primary {
+    background: var(--green);
+    color: #000;
+    border: none;
+    padding: 12px 28px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+    transition: all 0.2s;
+    text-decoration: none;
+    display: inline-block;
+  }
+
+  .btn-primary:hover {
+    background: #fff;
+    transform: translateY(-2px);
+  }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: 120px 60px 80px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .hero-content { max-width: 700px; }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0,255,135,0.08);
+    border: 1px solid rgba(0,255,135,0.2);
+    padding: 8px 16px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--green);
+    letter-spacing: 0.1em;
+    margin-bottom: 32px;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .badge::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+  }
+
+  h1 {
+    font-size: clamp(3rem, 6vw, 5.5rem);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    margin-bottom: 24px;
+    animation: fadeUp 0.6s 0.1s ease both;
+  }
+
+  h1 .accent { color: var(--green); }
+
+  .hero-desc {
+    font-size: 1.15rem;
+    color: var(--muted);
+    line-height: 1.7;
+    margin-bottom: 48px;
+    max-width: 520px;
+    animation: fadeUp 0.6s 0.2s ease both;
+    font-weight: 400;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    animation: fadeUp 0.6s 0.3s ease both;
+  }
+
+  .btn-ghost {
+    color: var(--text);
+    text-decoration: none;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+  }
+
+  .btn-ghost:hover { opacity: 1; }
+
+  /* STATS */
+  .stats-row {
+    display: flex;
+    gap: 48px;
+    margin-top: 80px;
+    animation: fadeUp 0.6s 0.4s ease both;
+    padding-top: 48px;
+    border-top: 1px solid var(--border);
+  }
+
+  .stat-item {}
+  .stat-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--green);
+    display: block;
+  }
+  .stat-label {
+    font-size: 0.8rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* FLOATING CARD */
+  .hero-visual {
+    position: absolute;
+    right: 60px;
+    top: 50%;
+    transform: translateY(-50%);
+    animation: float 4s ease-in-out infinite, fadeUp 0.8s 0.3s ease both;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(-50%) translateY(0px); }
+    50% { transform: translateY(-50%) translateY(-20px); }
+  }
+
+  .vault-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 32px;
+    width: 320px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .vault-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--green), transparent);
+  }
+
+  .vault-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .vault-amount {
+    font-family: 'Space Mono', monospace;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .vault-yield {
+    color: var(--green);
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 24px;
+  }
+
+  .vault-bar {
+    background: var(--border);
+    height: 4px;
+    border-radius: 2px;
+    margin-bottom: 24px;
+    overflow: hidden;
+  }
+
+  .vault-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--green), var(--dark-green));
+    width: 68%;
+    animation: grow 2s ease both;
+  }
+
+  @keyframes grow { from { width: 0; } }
+
+  .vault-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    font-size: 0.85rem;
+  }
+
+  .vault-row span:first-child { color: var(--muted); }
+  .vault-row span:last-child { font-family: 'Space Mono', monospace; color: var(--text); }
+
+  .vault-btn {
+    width: 100%;
+    background: var(--green);
+    color: #000;
+    border: none;
+    padding: 14px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 20px;
+    clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
+    transition: background 0.2s;
+  }
+
+  .vault-btn:hover { background: #fff; }
+
+  /* FEATURES */
+  .section {
+    padding: 100px 60px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .section-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--green);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .section-title {
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 60px;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+  }
+
+  .feature-card {
+    background: var(--card);
+    padding: 40px 36px;
+    transition: background 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .feature-card:hover { background: #0d2018; }
+
+  .feature-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--green);
+    transform: scaleX(0);
+    transition: transform 0.3s;
+    transform-origin: left;
+  }
+
+  .feature-card:hover::after { transform: scaleX(1); }
+
+  .feature-icon {
+    font-size: 2rem;
+    margin-bottom: 20px;
+    display: block;
+  }
+
+  .feature-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+
+  .feature-desc {
+    color: var(--muted);
+    font-size: 0.9rem;
+    line-height: 1.7;
+    font-weight: 400;
+  }
+
+  /* HOW IT WORKS */
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    position: relative;
+  }
+
+  .steps::before {
+    content: '';
+    position: absolute;
+    top: 28px;
+    left: 10%;
+    right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--green), var(--green), transparent);
+    opacity: 0.3;
+  }
+
+  .step {
+    text-align: center;
+    padding: 20px;
+  }
+
+  .step-num {
+    width: 56px; height: 56px;
+    background: var(--card);
+    border: 1px solid var(--green);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Space Mono', monospace;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--green);
+    margin: 0 auto 20px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .step-title {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .step-desc {
+    color: var(--muted);
+    font-size: 0.85rem;
+    line-height: 1.6;
+    font-weight: 400;
+  }
+
+  /* BUILT ON */
+  .built-on {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0 60px;
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+  }
+
+  .built-on::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--green), transparent);
+  }
+
+  .built-text h3 {
+    font-size: 1.6rem;
+    font-weight: 800;
+    margin-bottom: 8px;
+  }
+
+  .built-text p {
+    color: var(--muted);
+    font-size: 0.95rem;
+    font-weight: 400;
+  }
+
+  /* CTA */
+  .cta-section {
+    text-align: center;
+    padding: 120px 60px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .cta-section h2 {
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin-bottom: 20px;
+  }
+
+  .cta-section p {
+    color: var(--muted);
+    font-size: 1.1rem;
+    margin-bottom: 48px;
+    font-weight: 400;
+  }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  footer p {
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+  }
+
+  .footer-links {
+    display: flex;
+    gap: 24px;
+  }
+
+  .footer-links a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.8rem;
+    transition: color 0.2s;
+  }
+
+  .footer-links a:hover { color: var(--green); }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 900px) {
+    nav { padding: 16px 24px; }
+    .nav-links { display: none; }
+    .hero { padding: 120px 24px 80px; }
+    .hero-visual { display: none; }
+    .section { padding: 60px 24px; }
+    .features-grid { grid-template-columns: 1fr; }
+    .steps { grid-template-columns: repeat(2, 1fr); }
+    .built-on { margin: 0 24px; flex-direction: column; gap: 24px; text-align: center; }
+    .cta-section { padding: 80px 24px; }
+    footer { padding: 24px; flex-direction: column; gap: 16px; text-align: center; }
+    .stats-row { gap: 24px; flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+
+<div class="glow-orb"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">Vara<span>Save</span></div>
+  <ul class="nav-links">
+    <li><a href="#how">How It Works</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#about">About</a></li>
+  </ul>
+  <a href="#launch" class="btn-primary">Launch App</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-content">
+    <div class="badge">BUILT ON VARA NETWORK</div>
+    <h1>Save <span class="accent">On-Chain.</span><br>Earn Yield.<br>Stay Free.</h1>
+    <p class="hero-desc">VaraSave is the first non-custodial savings protocol on Vara Network. Deposit VARA, earn auto-compounding yield, withdraw anytime — no banks, no middlemen, just code.</p>
+    <div class="hero-actions">
+      <a href="#launch" class="btn-primary">Start Saving →</a>
+      <a href="#how" class="btn-ghost">How it works ↓</a>
+    </div>
+    <div class="stats-row">
+      <div class="stat-item">
+        <span class="stat-num">8.4%</span>
+        <span class="stat-label">Est. APY</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num">$0</span>
+        <span class="stat-label">Fees to Save</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num">100%</span>
+        <span class="stat-label">Non-Custodial</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOATING CARD -->
+  <div class="hero-visual">
+    <div class="vault-card">
+      <div class="vault-label">Your Vault</div>
+      <div class="vault-amount">2,400 VARA</div>
+      <div class="vault-yield">↑ +8.4% APY — Compounding</div>
+      <div class="vault-bar"><div class="vault-bar-fill"></div></div>
+      <div class="vault-row">
+        <span>Deposited</span>
+        <span>2,200 VARA</span>
+      </div>
+      <div class="vault-row">
+        <span>Yield Earned</span>
+        <span style="color: var(--green)">+200 VARA</span>
+      </div>
+      <div class="vault-row">
+        <span>Next Compound</span>
+        <span>~4 hrs</span>
+      </div>
+      <button class="vault-btn">Deposit VARA</button>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="section" id="how">
+  <div class="section-tag">// Process</div>
+  <div class="section-title">How VaraSave Works</div>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">01</div>
+      <div class="step-title">Connect Wallet</div>
+      <div class="step-desc">Connect your Vara-compatible wallet in one click. No sign-up required.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <div class="step-title">Deposit VARA</div>
+      <div class="step-desc">Choose how much VARA to deposit into the smart contract vault.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <div class="step-title">Earn Yield</div>
+      <div class="step-desc">Your tokens earn auto-compounding yield every few hours, automatically.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">04</div>
+      <div class="step-title">Withdraw Anytime</div>
+      <div class="step-desc">No lock-ups. Withdraw your full balance + yield whenever you want.</div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="section" id="features" style="padding-top: 0">
+  <div class="section-tag">// Features</div>
+  <div class="section-title">Built for Security & Simplicity</div>
+  <div class="features-grid">
+    <div class="feature-card">
+      <span class="feature-icon">🔒</span>
+      <div class="feature-title">Non-Custodial</div>
+      <div class="feature-desc">Your keys, your funds. VaraSave smart contracts never hold admin keys. Only you control your deposits.</div>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">⚡</span>
+      <div class="feature-title">Auto-Compounding</div>
+      <div class="feature-desc">Yield is automatically reinvested every cycle, maximizing your returns without any manual action.</div>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🔍</span>
+      <div class="feature-title">Fully Transparent</div>
+      <div class="feature-desc">All contracts are open source and verifiable on-chain. No black boxes, no hidden mechanisms.</div>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🛡️</span>
+      <div class="feature-title">Audited Contracts</div>
+      <div class="feature-desc">Smart contracts undergo rigorous third-party security audits before any mainnet deployment.</div>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🚀</span>
+      <div class="feature-title">Vara-Native Speed</div>
+      <div class="feature-desc">Built on Vara's Layer-1 for lightning-fast transactions and near-zero gas fees.</div>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🏗️</span>
+      <div class="feature-title">DeFi Primitive</div>
+      <div class="feature-desc">Other Vara dApps can integrate VaraSave as a foundational yield layer for their own protocols.</div>
+    </div>
+  </div>
+</section>
+
+<!-- BUILT ON VARA -->
+<div class="built-on" id="about">
+  <div class="built-text">
+    <h3>Powered by <span style="color:var(--green)">Vara Network</span></h3>
+    <p>VaraSave is built natively on Vara's Gear Protocol — leveraging its speed,<br>low fees, and advanced smart contract capabilities.</p>
+  </div>
+  <a href="https://vara.network" target="_blank" class="btn-primary" style="white-space:nowrap">Learn About Vara →</a>
+</div>
+
+<!-- CTA -->
+<section class="cta-section" id="launch">
+  <div class="section-tag">// Early Access</div>
+  <h2>Ready to Save<br><span style="color:var(--green)">On-Chain?</span></h2>
+  <p>Join the waitlist. Testnet launching soon.</p>
+  <a href="#" class="btn-primary" style="font-size:1rem; padding: 18px 48px;">Join Waitlist →</a>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>© 2025 VaraSave Protocol. Built on Vara Network.</p>
+  <div class="footer-links">
+    <a href="#">GitHub</a>
+    <a href="#">Docs</a>
+    <a href="#">Discord</a>
+    <a href="mailto:hello@varasave.xyz">Contact</a>
+  </div>
+</footer>
+
+</body>
+</html>
